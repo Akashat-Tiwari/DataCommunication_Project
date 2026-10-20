@@ -6,6 +6,7 @@ from src.data_generator import (
     generate_random_bits,
     inject_zero_run,
     find_longest_palindrome,
+    generate_bits_with_zero_run
 )
 
 
@@ -69,3 +70,30 @@ def test_find_longest_palindrome_handles_empty_input():
 def test_find_longest_palindrome_rejects_non_binary_values():
     with pytest.raises(ValueError):
         find_longest_palindrome([0, 1, 2])
+
+
+
+@pytest.mark.parametrize("run_length", [4, 8])
+def test_generate_bits_with_zero_run(run_length):
+    bits = generate_bits_with_zero_run(
+        32,
+        run_length,
+        random.Random(21),
+    )
+
+    assert len(bits) == 32
+    assert all(bit in (0, 1) for bit in bits)
+    assert any(
+        bits[i:i + run_length] == [0] * run_length
+        for i in range(len(bits) - run_length + 1)
+    )
+
+
+def test_generate_bits_with_zero_run_rejects_unsupported_run_length():
+    with pytest.raises(ValueError):
+        generate_bits_with_zero_run(32, 5)
+
+
+def test_generate_bits_with_zero_run_rejects_insufficient_length():
+    with pytest.raises(ValueError):
+        generate_bits_with_zero_run(4, 8)
