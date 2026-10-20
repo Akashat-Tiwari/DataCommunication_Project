@@ -123,3 +123,32 @@ def find_longest_palindrome(bits: List[int]) -> List[int]:
             right = center + radius - 1
 
     return bits[best_start:best_start + best_length]
+
+
+def generate_bits_with_zero_run(
+    length: int,
+    run_length: int,
+    rng: Optional[random.Random] = None,
+) -> List[int]:
+    """
+    Generate random bits containing four or eight consecutive zeros.
+
+    The returned sequence has exactly the requested length.
+    """
+    if length < 0:
+        raise ValueError("length must be non-negative")
+
+    if run_length not in (4, 8):
+        raise ValueError("run_length must be either 4 or 8")
+
+    if length < run_length:
+        raise ValueError("length must be at least run_length")
+
+    generator = rng if rng is not None else random
+
+    bits = generate_random_bits(length, rng)
+
+    start = generator.randrange(length - run_length + 1)
+    bits[start:start + run_length] = [0] * run_length
+
+    return bits
