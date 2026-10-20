@@ -2,7 +2,11 @@ import random
 
 import pytest
 
-from src.data_generator import generate_random_bits, inject_zero_run
+from src.data_generator import (
+    generate_random_bits,
+    inject_zero_run,
+    find_longest_palindrome,
+)
 
 
 def test_generate_random_bits_returns_requested_binary_length():
@@ -41,3 +45,27 @@ def test_negative_lengths_are_rejected():
 
     with pytest.raises(ValueError):
         inject_zero_run([1, 0], -1)
+
+def test_find_longest_palindrome_odd_length():
+    bits = [0, 1, 0, 1, 1]
+    assert find_longest_palindrome(bits) == [0, 1, 0]
+
+
+def test_find_longest_palindrome_even_length():
+    bits = [1, 0, 1, 1, 0, 0]
+    assert find_longest_palindrome(bits) == [0, 1, 1, 0]
+
+
+def test_find_longest_palindrome_returns_first_longest_on_tie():
+    bits = [0, 0, 1, 1]
+
+    assert find_longest_palindrome(bits) == [0, 0]
+
+
+def test_find_longest_palindrome_handles_empty_input():
+    assert find_longest_palindrome([]) == []
+
+
+def test_find_longest_palindrome_rejects_non_binary_values():
+    with pytest.raises(ValueError):
+        find_longest_palindrome([0, 1, 2])
