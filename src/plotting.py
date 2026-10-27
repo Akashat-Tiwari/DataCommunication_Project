@@ -1,6 +1,9 @@
 
 """Waveform plotting utilities for the Data Communication assignment."""
 
+from pathlib import Path
+import matplotlib
+
 import math
 from collections.abc import Sequence
 
@@ -8,6 +11,66 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
+
+def _save_decoder_image(signal_levels: Sequence[int]) -> Path:
+    """Save a clean waveform image for image-based decoding."""
+    output_dir = Path(__file__).resolve().parent.parent / "outputs"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    output_path = output_dir / "decoder_signal.png"
+
+    # Keep exactly 20 pixels for every signal interval.
+    pixels_per_level = 20
+    width_pixels = len(signal_levels) * pixels_per_level
+    height_pixels = 300
+    dpi = 100
+
+    fig = plt.figure(
+        figsize=(width_pixels / dpi, height_pixels / dpi),
+        dpi=dpi,
+        facecolor="white",
+    )
+    ax = fig.add_axes([0, 0, 1, 1])
+
+    ax.stairs(
+        signal_levels,
+        list(range(len(signal_levels) + 1)),
+        baseline=None,
+        color="#ff0000",
+        linewidth=3,
+    )
+
+    # Fixed limits let the decoder infer -1, 0, and +1 from pixel positions.
+    ax.set_xlim(0, len(signal_levels))
+    ax.set_ylim(-1.5, 1.5)
+    ax.axis("off")
+
+    fig.savefig(
+        output_path,
+        dpi=dpi,
+        facecolor="white",
+        edgecolor="white",
+        pad_inches=0,
+    )
+    plt.close(fig)
+
+    return output_path
+
+
+def _show_or_save(fig: Figure, filename: str, show: bool) -> None:
+    """Save the plot as an image and optionally display it."""
+    output_dir = Path(__file__).resolve().parent.parent / "outputs"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    output_path = output_dir / filename
+    fig.savefig(output_path, dpi=150, bbox_inches="tight")
+
+    backend = matplotlib.get_backend().lower()
+
+    if show and backend != "agg":
+        plt.show()
+    elif show:
+        print(f"Plot saved to: {output_path}")
 
 def _validate_bits(bits: Sequence[int]) -> None:
     """Validate a binary sequence."""
@@ -67,8 +130,7 @@ def plot_digital_stream(
 
     fig.tight_layout()
 
-    if show:
-        plt.show()
+    _show_or_save(fig, "digital_stream.png", show)
 
     return fig, ax
 
@@ -126,8 +188,8 @@ def plot_line_coded_signal(
 
     fig.tight_layout()
 
-    if show:
-        plt.show()
+    _save_decoder_image(signal_levels)
+    _show_or_save(fig, "line_coded_signal.png", show)
 
     return fig, ax
 
@@ -181,7 +243,6 @@ def plot_pcm_reconstruction(
 
     fig.tight_layout()
 
-    if show:
-        plt.show()
+    _show_or_save(fig, "pcm_reconstruction.png", show)
 
     return fig, ax
