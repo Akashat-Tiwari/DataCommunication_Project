@@ -4,6 +4,10 @@
 import math
 from collections.abc import Callable, Sequence
 
+from pathlib import Path
+
+from src.image_decoder import decode_signal_image
+
 from src.data_generator import (
     generate_random_bits,
     generate_bits_with_zero_run,
@@ -34,6 +38,29 @@ LINE_CODERS: dict[str, tuple[str, Encoder, int]] = {
     "3": ("Manchester", encode_manchester, 2),
     "4": ("Differential Manchester", encode_differential_manchester, 2),
 }
+
+def _decode_and_report(bits: Sequence[int], scheme: str) -> None:
+    """Decode a saved waveform image and display the recovered bitstream."""
+    image_path = (
+        Path(__file__).resolve().parent
+        / "outputs"
+        / "decoder_signal.png"
+    )
+
+    try:
+        decoded_bits = decode_signal_image(image_path, scheme)
+    except (OSError, ValueError) as error:
+        print(f"Could not decode waveform image: {error}")
+        return
+
+    print("\nIMAGE-BASED DECODING RESULTS")
+    print(f"Decoded bitstream: {''.join(map(str, decoded_bits))}")
+
+    # The original bits are used only to verify the result after decoding.
+    if decoded_bits == list(bits):
+        print("Verification: decoded stream matches the original.")
+    else:
+        print("Warning: decoded stream differs from the original.")
 
 SCRAMBLERS = {
     "1": ("B8ZS", scramble_b8zs),
@@ -164,6 +191,11 @@ def run_line_coding(
             samples_per_bit=samples_per_bit,
             show=show_plots,
         )
+
+        if _read_yes_no(
+            "Decode the signal from the saved waveform image? (y/n): "
+        ):
+            _decode_and_report(bits, display_name)
 
         return signal
 
